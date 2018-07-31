@@ -17,13 +17,13 @@ class Downloader:
         self.src_home_oo = "/data/03/Carsharing_data/output/"
         self.src_home_oa = "/data/03/Carsharing_data/output_analysis/"
         self.dst_home = "/Users/mc/Desktop/csExp/data"+city+"/"
-        self.plt_home = "Users/mc/Desktop/csExp/plot"+city+"/"
-        self.plt_aggr = "/Users/mc/Desktop/csExp/plotAggregated/"
+        self.plt_home = "Users/mc/Desktop/Taormina2.0/csExp/plot"+city+"/"
+        self.plt_aggr = "/Users/mc/Desktop/Taormina2.0/csExp/plotAggregated/"
     
     def changeDstHome(self, city):
         self.city = city
-        self.dst_home = "~/Desktop/csExp/data"+city+"/"
-        self.plt_home = "/Users/mc/Desktop/csExp/plot"+city+"/"
+        self.dst_home = "~/Desktop/Taormina2.0/csExp/data"+city+"/"
+        self.plt_home = "/Users/mc/Desktop/Taormina2.0/csExp/plot"+city+"/"
         
     
     def acquireLastSimulationID(self):
@@ -97,44 +97,67 @@ class Downloader:
         df = pd.read_pickle("/Users/mc/Desktop/csExp/dataVancouver/stats_on_bookings")
         return df
     
-    def downloadBookingsPerHour(self):
+    def downloadBookingsPerHour(self, city):
         
-        srvr_ssh = "d046373@polito.it@tlcdocker1.polito.it:"
-        srvr_ssh += "/home/d046373@polito.it/%s_sim3.0/output_analysis/bookings_per_hour_%s "%(self.city, self.city)
-        dst = self.dst_home + "bookings_per_hour_"+self.city+".csv"
-        os.system('scp ' + srvr_ssh + dst)
+#        srvr_ssh = "d046373@polito.it@tlcdocker1.polito.it:"
+#        srvr_ssh += "/home/d046373@polito.it/%s_sim3.0/output_analysis/bookings_per_hour_%s "%(self.city, self.city)
+#        dst = self.dst_home + "bookings_per_hour_"+self.city+".csv"
+#        os.system('scp ' + srvr_ssh + dst)
+        
+        cmd = 'scp tlcdocker1:/home/d046373@polito.it/%s_sim3.0/input/bookings_per_hour_%s.csv '%(city, city)
+        cmd +='../data%s/' %(city)
+        os.system(cmd)
         print ("bookings_per_hour_"+self.city+".csv", "downloaded" )
-        return dst
+        return
+    
+        
+    def downloadBookingsInCsv(self, city):
+        
+#        srvr_ssh = "d046373@polito.it@tlcdocker1.polito.it:"
+#        srvr_ssh += "/home/d046373@polito.it/%s_sim3.0/output_analysis/bookings_per_hour_%s "%(self.city, self.city)
+#        dst = self.dst_home + "bookings_per_hour_"+self.city+".csv"
+#        os.system('scp ' + srvr_ssh + dst)
+        
+        cmd = 'scp tlcdocker1:/home/d046373@polito.it/%s_sim3.0/input/%s_completeDataset.csv '%(city, city)
+        cmd +='../data%s/' %(city)
+        os.system(cmd)
+        print ("%s_CompleteDatset downloaded"%city)
+        return
 
-
-    def downloadLogHDFS(self, simID, policy, algorithm, zones, acs, tt, wt, utt, p, city):
+    def downloadLogHDFS(self, simID, policy, algorithm, zones, acs, tt, wt, utt, p, city, kwh=''):
         if simID == "last":
             lastS = self.acquireLastSimulationID()
             print("The last Simulation is", lastS)
         else :
             lastS = simID
+            
         
         '''
         car2go_Needed_max-time_7_4_50_1000000_100_0.txt
         '''
         strOutput = ""
-        while len(strOutput) == 0:
-            fileName= "car2go_%s_%s_%d_%d_%d_%d_%d_%d.txt" %(policy,algorithm, zones,acs,tt,wt,utt,p)
-        
+        attempt = 0
+        while len(strOutput) == 0 and attempt<=2:
+            if len(str(kwh)) == 0 :
+                fileName= "car2go_%s_%s_%d_%d_%d_%d_%d_%d.txt" %(policy,algorithm, zones,acs,
+                                                                 tt,wt,utt,p)
+            else:
+                fileName= "car2go_%s_%s_%d_%d_%d_%d_%d_%d_%d.txt" %(policy,algorithm, zones,acs,
+                                                                    tt,wt,utt,p, kwh)
     
             bashCommand = "ssh cocca@bigdatadb "+\
               "hdfs dfs -cat "+\
               "Simulator/output/Simulation_"+ str(simID) +"/"+\
               fileName
               
-            print (bashCommand)
         
             process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
             strOutput =  output.decode("utf-8") 
             
-            print ("====",city, "====", len(strOutput))
+            print ("city:",city, "====", "zones:", zones, "====", len(strOutput))
             zones += 1
+            attempt +=1
         
         path = "../data"+city+"/"
         newFileName = fileName
@@ -143,8 +166,7 @@ class Downloader:
         f.write(strOutput)
         f.close()
         
-        return newFileName
-
+        return fileName
     
     
     

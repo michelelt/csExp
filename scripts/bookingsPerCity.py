@@ -11,6 +11,13 @@ import pymongo
 import ssl
 import datetime
 import time
+from math import radians, cos, sin, asin, sqrt
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib
+
+
+
 
 def haversine(lon1, lat1, lon2, lat2):
     """
@@ -53,7 +60,7 @@ def query_bookings(city, start, end):
                                '$lt': end
                            },
             'city' : city,
-            "driving.distance" : {"$ne":-1} 
+#            "driving.distance" : {"$ne":-1} 
             }).sort([("_id", 1)]) 
   
         
@@ -108,20 +115,104 @@ def query_bookings_df(city, start, end):
             bookings_df['arrival_time_pt'] = bookings_df.public_transport.apply(lambda x : x['arrival_time'] )
             bookings_df = bookings_df.drop('public_transport',1)
             
-            bookings_df = bookings_df[ bookings_df["start_lon"] <= 7.8]  
+            if city == "Torino":
+                bookings_df = bookings_df[ bookings_df["start_lon"] <= 7.8]  
 
             return bookings_df
         
-start = datetime.datetime(2017, 9, 5, 0, 0, 0)
-end = datetime.datetime(2017, 11, 02, 23, 59, 0)
+        
+def computeCDF(series, metric, city):
+    
+    y_set = series
+    max_ticks = series.max()
+    print (max_ticks, "[m]")
+    
+    values = y_set
+    sorted_data = np.sort(values)
+    yvals=np.arange(len(values))/float(len(values)-1)
+    print("Sorted data len:", len(sorted_data))
+    
+    return [sorted_data, yvals]
+    
 
-## bookings ##
-c2g_bookings = query_bookings_df("Milano", start, end)
+def plotCDF(sorted_data, yvals, metric, save=False, city="", path="" ):
+    title = "CF_" +city+ "_" + metric+".pdf"
+    fig, ax = plt.subplots(1,1,figsize=(6,4))
+    ax.grid()
+    
+    ax.set_title(city)
+    ax.set_ylabel("CDF")
+    ax.set_ylim(0,1)
+    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+    
+#    yvals = dataset[1]
+#    sorted_data = dataset[0]
+    xmax = max(sorted_data)
+    ax.tick_params()
+    
+
+    ax.set_xlabel("Goolge distance over Haversine distnace")
+#    ax.set_xscale("log")
+    
+    ax.plot(sorted_data, yvals)
+
+#    plt.legend(loc=4, fontsize=fontsize)
+    if save :   
+        plt.savefig(path+title, bbox_inches = 'tight', format='pdf')
+    plt.show()
+    
+    
+    return [sorted_data, yvals]
+
+        
+#start = datetime.datetime(2017, 9, 5, 0, 0, 0)
+#end = datetime.datetime(2017, 11, 2, 23, 59, 59)
+### bookings ##
+#for city in ["Milano"]:
+#    start_proc_time = time.time()
+#    print ("Queryng", city )
+#    print ("init date", start.isoformat())
+#    print ("final date", end.isoformat())
+#    df = query_bookings_df(city, start, end)
+#    if len(df) < 100: 
+#        print (df)
+#    else : df.to_pickle("../data/"+city+".pickle")
+#    final_proc_time = time.time() - start_proc_time
+#    print ("Process on", city, "requires ", int(final_proc_time/60), "minutes")
+    
+#c2g_bookings = query_bookings_df("Milano", start, end)
 #cursor = query_bookings("Vancouver", start, end)
 
 #for element in list(cursor):
 #    print (element)
 #    break
+
+city="Milano"
+df = pd.read_pickle("../data/"+city+".pickle")
+trip_with_dr = df[
+         (df['duration'] > 1) 
+        &(df['duration'] > 60)
+        &(df['distance'] > 700)
+        &(df['distance_dr'] > -1)
+        ]
+
+corrective_factor =  trip_with_dr['distance_dr'] / trip_with_dr['distance']
+sorted_data, yvals = computeCDF(corrective_factor, "", "")
+plotCDF(sorted_data, yvals, "", save=True, 
+        city="Milanio", path="../plot"+city+"/" )
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
