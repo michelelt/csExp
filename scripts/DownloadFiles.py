@@ -123,6 +123,13 @@ class Downloader:
         os.system(cmd)
         print ("%s_CompleteDatset downloaded"%city)
         return
+    
+    def downloadFleetPerDayPickle(self, city):
+        cmd = 'scp tlcdocker1:/home/d046373@polito.it/%s_sim3.0/input/fleet_per_day '%(city)
+        cmd +='../data%s/%s_fleet_per_day' %(city,city)
+        os.system(cmd)
+        print ("%s_fleet_per_day downloaded"%city)
+        return
 
     def downloadLogHDFS(self, simID, policy, algorithm, zones, acs, tt, wt, utt, p, city, kwh=''):
         if simID == "last":
