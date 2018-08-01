@@ -102,7 +102,9 @@ def downloadAllStuff(c2id) :
     return cdfList_bdst, cdfList_bdur, cdfList_pdur, dict_df, log_df, plt_home, path, mytt
 
 #
-c2id = {"Torino":6, "Berlino":7, "Vancouver":8, "Milano":9}
+#c2id = {"Torino":6, "Berlino":7, "Vancouver":8, "Milano":9}
+c2id = {"Vancouver":8, "Berlino":7,"Milano":9,"Torino":6}
+
 #c2id = {"Torino":6}
 
 
@@ -116,8 +118,8 @@ metrics = ["AvgStationOccupancy", "AmountRechargePerc", "AvgSOC",
 #plt_home, path, mytt =  downloadAllStuff(c2id)
 
 
-#x,y = metricVaryingZonesAndAcs(dict_df["Torino"], 25, [0,25,50,75], "Deaths")
-for city in c2id.keys():
+##x,y = metricVaryingZonesAndAcs(dict_df["Torino"], 25, [0,25,50,75], "Deaths")
+#for city in c2id.keys():
 #    mytt=25
     
 #    cdfList_bdst[city] = computeCDF(log_df[city], "RentalsDistance", city) 
@@ -129,12 +131,12 @@ for city in c2id.keys():
 #    plotCDF(cdfList_pdur[city], "ParkingsDuration", save=False, city=city, path=plt_home)
 
 #
-    plotDeathProb(init_df=dict_df[city], city=city, tt=mytt, acs=4,\
-                  save=True, onlyFF=True, path="../plot"+city+"/")
+#    plotDeathProb(init_df=dict_df[city], city=city, tt=mytt, acs=4,\
+#                  save=True, onlyFF=True, path="../plot"+city+"/")
 #    
-    plotMetricVsZones_policy(dict_df[city],city, acs=4, tt=mytt, utt=100, p=0,
-                                 metric='Deaths', save=True, freeFloating=True, k=250, 
-                                 path='../plot%s/'%city)
+#    plotMetricVsZones_policy(dict_df[city],city, acs=4, tt=mytt, utt=100, p=0,
+#                                 metric='Deaths', save=True, freeFloating=True, k=250, 
+#                                 path='../plot%s/'%city)
         
 #        metricVsZones_kwhSupplied(dict_df['Torino'],
 #                          city='Torino', 
@@ -158,29 +160,24 @@ for city in c2id.keys():
 #                          save=False, path='./../plotTorino/')
         
 
-        
-    for m in metrics:
-        plotMetricVsZones_policy_p(init_df=dict_df[city], acs=4, tt=mytt, utt=100,
-                                        plist=[0,25,50,75],metric=m, city=city, save=False,
-                                        freeFloating=False, path="../plot"+city+"/cut_", ax="")
 #        
+#    for m in metrics:
+#        plotMetricVsZones_policy_p(init_df=dict_df[city], acs=4, tt=mytt, utt=100,
+#                                        plist=[0,25,50,75],metric=m, city=city, save=False,
+#                                        freeFloating=False, path="../plot"+city+"/cut_", ax="")
 ##        
+###        
+#
+#aggreatePerCityCDF(cdfList_bdst, "RentalsDistance", save=True, path="../plotAggregated/", ax=None)
+#aggreatePerCityCDF(cdfList_bdur, "RentalsDuration", save=True, path="../plotAggregated/", ax=None)
+#aggreatePerCityCDF(cdfList_pdur, "ParkingsDuration", save=True, path="../plotAggregated/", ax=None)
+#plotMetricVsZones_city(dict_df, save=True, path="../plotAggregated/")
+aggregateUtilizastionPerHour(['Vancouver', "Berlino", "Milano", "Torino"], save=True, path='../plotAggregated/')
+#plotBookingsPerDay(save=True, path="../plotAggregated/")
+#plotFleetPerDay(save=True, path="../plotAggregated/")
 
-#fig, ax = plt.subplots(3,1, figsize=(36,6))
-aggreatePerCityCDF(cdfList_bdst, "RentalsDistance", save=False, path="../plotAggregated/", ax=None)
-aggreatePerCityCDF(cdfList_bdur, "RentalsDuration", save=False, path="../plotAggregated/", ax=None)
-aggreatePerCityCDF(cdfList_pdur, "ParkingsDuration", save=False, path="../plotAggregated/", ax=None)
-plotMetricVsZones_city(dict_df, False, path="../plotAggregated/")
-
-#plt.savefig("../plotAggregated/CDF_1fig.pdf", bbox_inches = 'tight', format='pdf')
-
-
-df = aggregateUtilizastionPerHour(['Vancouver', "Berlino", "Milano", "Torino"], save=False, 
-                                   path='../plotAggregated/')
-plotBookingsPerDay(save=False, path="../plotAggregated/")
-        
-plotFleetPerDay(save=False, path="../plotAggregated/")    
-        
+#os.system("copyFinalPlots.py")
+#        
         
 
         
