@@ -62,7 +62,7 @@ rnd dld
 #
 #df = df [df["Policy"]!= "max-time"]
         
-def downloadAllStuff(c2id) :
+def downloadAllStuff(c2id,rnd2id) :
     
     dict_df={}
     log_df = {}
@@ -86,42 +86,79 @@ def downloadAllStuff(c2id) :
 ##
         dict_df[city] = pd.read_csv(path+outFileName, sep=" ")
         dict_df[city]["TravelWithPenlaty"] = computeTravelWithPenlaty(dict_df[city])
-        log0_name = dld.downloadLogHDFS(simID=lastS, policy = "Hybrid", algorithm="max-parking", 
-                    zones=20, acs=4, tt=25, wt=1000000, utt=100, p=0, city=city, kwh="")
-##        
-##
-        log_df[city] = pd.read_csv("../data"+city+"/"+log0_name, sep=";", 
-                                   skiprows=[0,1,2,3,4,5,6,7,8,9])
+        
+        if city in rnd2id.keys():
+            rndDf = pd.DataFrame()
+            for lastS_rnd in rnd2id[city]:
+                lastS_rnd, outFileName_rnd =dld.dowloadOutAnalysis(lastS_rnd)
+                tmp_rnd = pd.read_csv(path+outFileName_rnd, sep=" ")
+                tmp_rnd["TravelWithPenlaty"] = computeTravelWithPenlaty(tmp_rnd)
+                rndDf = tmp_rnd.append(tmp_rnd)
+                
+            df_rnd = rndDf
+            df_rnd = df_rnd[df_rnd["Policy"] == 'FreeFloating' ]
+            
+            
+            dfMean = df_rnd.groupby("Zones").mean()
+            dfMean["Provider"] = "car2go"
+            dfMean["Policy"] = "FreeFloating"
+            dfMean["Algorithm"] = "Mean Random"
+            dfMean = dfMean.reset_index()
+            dfMean = dfMean[dfMean.Zones.isin(dict_df[city].Zones)]
+        
+    ##        return dfMean
+    #        dfMin = df_rnd.groupby("Zones").min()
+    #        dfMin["Provider"] = "car2go"
+    #        dfMin["Policy"] = "FreeFloating"
+    #        dfMin["Algorithm"] = "Mean Random"
+    #        dfMin = dfMin.reset_index()
+    #        dfMin = dfMin[dfMin.Zones.isin(dict_df[city].Zones)]
+#
+            dict_df[city] = dict_df[city].append([dfMean], ignore_index=True)
+    
+#        if lastS < 17:
+#            log0_name = dld.downloadLogHDFS(simID=lastS, policy = "Hybrid", algorithm="max-parking", 
+#                        zones=20, acs=4, tt=25, wt=1000000, utt=100, p=0, city=city, kwh="")
+#        else:
+#            log0_name = dld.downloadLogHDFS(simID=lastS, policy = "Hybrid", algorithm="max-parking", 
+#            zones=20, acs=4, tt=25, wt=1000000, utt=100, p=0, city=city, kwh=2)
+###        
+###
+#        log_df[city] = pd.read_csv("../data"+city+"/"+log0_name, sep=";", 
+#                                   skiprows=[0,1,2,3,4,5,6,7,8,9])
         
 
-        dld.downloadBookingsPerHour(city)
-        dld.downloadFleetPerDayPickle(city)
-        dld.downloadBookingsInCsv(city)
+#        dld.downloadBookingsPerHour(city)
+#        dld.downloadFleetPerDayPickle(city)
+#        dld.downloadBookingsInCsv(city)
         
     
     return cdfList_bdst, cdfList_bdur, cdfList_pdur, dict_df, log_df, plt_home, path, mytt
 
 #
-#c2id = {"Torino":6, "Berlino":7, "Vancouver":8, "Milano":9}
-c2id = {"Vancouver":8, "Berlino":7,"Milano":9,"Torino":6}
-
-#c2id = {"Torino":6}
-
-
+c2id = {"Vancouver":8, "Berlino":7,"Milano":9, "Torino":6}
+rnd2id = {"Torino":[11,12,13,14,15],
+          "Vancouver":[17,18,19,20,21], 
+          "Berlino":[22,23,24,25,26], 
+          "Milano":[27,29,30,31,32]
+          }
+ 
 metrics = ["Deaths", "AvgStationOccupancy", "AmountRechargePerc", "AvgSOC", 
            "ReroutePerc", "AvgWalkedDistance", "TravelWithPenlaty"]
 metrics = ["AvgStationOccupancy", "AmountRechargePerc", "AvgSOC", 
            "ReroutePerc", "AvgWalkedDistance", "TravelWithPenlaty"]
+metrics=["Deaths"]
 
 
 #cdfList_bdst, cdfList_bdur, cdfList_pdur, dict_df, log_df,\
-#plt_home, path, mytt =  downloadAllStuff(c2id)
+#plt_home, path, mytt =  downloadAllStuff(c2id, rnd2id)
+
+#rnd = downloadAllStuff(c2id, rnd2id)
 
 
 ##x,y = metricVaryingZonesAndAcs(dict_df["Torino"], 25, [0,25,50,75], "Deaths")
 #for city in c2id.keys():
-#    mytt=25
-    
+#    
 #    cdfList_bdst[city] = computeCDF(log_df[city], "RentalsDistance", city) 
 #    cdfList_bdur[city] = computeCDF(log_df[city], "RentalsDuration", city)
 #    cdfList_pdur[city] = computeCDF(log_df[city], "ParkingsDuration", city)
@@ -133,9 +170,9 @@ metrics = ["AvgStationOccupancy", "AmountRechargePerc", "AvgSOC",
 #
 #    plotDeathProb(init_df=dict_df[city], city=city, tt=mytt, acs=4,\
 #                  save=True, onlyFF=True, path="../plot"+city+"/")
-#    
+    
 #    plotMetricVsZones_policy(dict_df[city],city, acs=4, tt=mytt, utt=100, p=0,
-#                                 metric='Deaths', save=True, freeFloating=True, k=250, 
+#                                 metric='Deaths', save=False, freeFloating=True, k=250, 
 #                                 path='../plot%s/'%city)
         
 #        metricVsZones_kwhSupplied(dict_df['Torino'],
@@ -172,29 +209,27 @@ metrics = ["AvgStationOccupancy", "AmountRechargePerc", "AvgSOC",
 #aggreatePerCityCDF(cdfList_bdur, "RentalsDuration", save=True, path="../plotAggregated/", ax=None)
 #aggreatePerCityCDF(cdfList_pdur, "ParkingsDuration", save=True, path="../plotAggregated/", ax=None)
 #plotMetricVsZones_city(dict_df, save=True, path="../plotAggregated/")
-aggregateUtilizastionPerHour(['Vancouver', "Berlino", "Milano", "Torino"], save=True, path='../plotAggregated/')
+#aggregateUtilizastionPerHour(['Vancouver', "Berlino", "Milano", "Torino"], save=True, path='../plotAggregated/')
 #plotBookingsPerDay(save=True, path="../plotAggregated/")
 #plotFleetPerDay(save=True, path="../plotAggregated/")
 
 #os.system("copyFinalPlots.py")
 #        
         
+c2id = {"Vancouver":34, "Berlino":33,"Milano":35, "Torino":32}
+rnd2id={}
+cdfList_bdst, cdfList_bdur, cdfList_pdur, dict_df, log_df,\
+plt_home, path, mytt =  downloadAllStuff(c2id, rnd2id)
+metricVaryingZonesAndAcs(dict_df, "Deaths",save=True, path='../plotAggregated/')
+
 
         
         
-        
 
-    
-    
     
 
     
-    
-    
-    
-    
-    
-    
+
     
     
     

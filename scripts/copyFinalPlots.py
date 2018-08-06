@@ -31,7 +31,8 @@ plotNames = ['cut_Vancouver_AvgWalkedDistanceVsZones_Policy_44_tt-25_100_4.pdf',
              'cut_Vancouver_AvgSOCVsZones_Policy_44_tt-25_100_4.pdf', 
              'cut_Vancouver_AmountRechargePercVsZones_Policy_44_tt-25_100_4.pdf', 
              'cut_Berlino_ReroutePercVsZones_Policy_44_tt-25_100_4.pdf', 
-             'cut_Vancouver_ReroutePercVsZones_Policy_44_tt-25_100_4.pdf']
+             'cut_Vancouver_ReroutePercVsZones_Policy_44_tt-25_100_4.pdf',
+             'Deaths_vsZones_ACS.pdf']
 
 dirList = ['plotAggregated/', 'plotTorino/', 'plotBerlino/', 'plotMilano/', 'plotVancouver/']
 
