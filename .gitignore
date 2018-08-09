@@ -1,2 +1,7 @@
-plot*
+plotBerlino/
+plotTorino/
+plotMadrid/
+plotVancouver/
+plotAggregated/
+plotToExport/
 data*
