@@ -62,7 +62,7 @@ def plotDeathProb(init_df, city, tt, acs, save=False, onlyFF=True, path=""):
         if "Free" not in policy:
             df = df[df["TankThreshold"] == tt]
         
-        for algorithm in ['avg-time', 'max-time', 'max-parking']:
+        for algorithm in ['avg-time', 'max-time', 'max-parking', 'Mean Random']:
             print (algorithm)
             a = df[df["Algorithm"] == algorithm]
             a = a[a["Acs"] == acs]
@@ -90,7 +90,7 @@ def plotDeathProb(init_df, city, tt, acs, save=False, onlyFF=True, path=""):
 #                + ", acs:" + str(acs)
                 
         ax3 = ax.twiny()
-        ax3.set_xlabel("Number of charging station", fontsize=ax_lab_fontsize)
+        ax3.set_xlabel("Number of charging stations", fontsize=ax_lab_fontsize)
         myX3ticks = ax.get_xticks()
         myX3ticksB = []
         for i in range(len(myX3ticks)):
@@ -252,7 +252,6 @@ def plotMetricVsTT_policy(init_df, z, acs, algorithm, metric, save=False, path="
 ########################################################################################################
 
 def aggreatePerCityCDF(cdfList, dataType, save, path, ax): 
-    colors  = {"Vancouver":"green", "Berlino":"orange",  "Milano":"red", "Torino":"blue", }
 
     title = "CDF_aggregate_"+dataType+".pdf"
     if ax == None:
@@ -262,17 +261,17 @@ def aggreatePerCityCDF(cdfList, dataType, save, path, ax):
     ax.set_ylim(0,1)
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
     xmax = 0
-    for city in cdfList.keys():
+    for city in colors_dict_city.keys():
         x = cdfList[city][0]
         y = cdfList[city][1]
         
         if (max(x)) > xmax: xmax =max(x)
         
         
-        ax.plot(x, y, label=city_eng_names[city] , color=colors[city])
+        ax.plot(x, y, label=city_eng_names[city] , color=colors_dict_city[city])
     
     if dataType == "RentalsDistance":
-        ax.set_xlabel("Rentals Distance",fontsize=ax_lab_fontsize)
+        ax.set_xlabel("Driving Distance",fontsize=ax_lab_fontsize)
         ax.set_xscale("log")
         ax.set_xlim(left=700, right=xmax)
         ax.set_xticks([700, 1000, 2000, 5000, 10000, 20000, xmax])
@@ -294,7 +293,7 @@ def aggreatePerCityCDF(cdfList, dataType, save, path, ax):
         ax.set_xlim(0, 60)
         ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
         ncol=4, mode="expand", borderaxespad=0., edgecolor="white",
-        prop={'size': fontsize})
+        prop={'size': legend_fontsize})
         
         
     ax.tick_params(labelsize=ticks_fontsize)
@@ -496,11 +495,11 @@ def plotMetricVsZones_city(init_df, save, path):
 #    x = df.Zones.unique()
 #    x = x *100 / float(numeberOfZones(city))
     
-    fig,ax = plt.subplots(1,1,figsize=(9,3))
+    fig,ax = plt.subplots(1,1,figsize=(9,4))
     ax.grid()
-
+    legend_elements = []
     
-    outList = []    
+    outList = []
     for city in colors_dict_city.keys():
         df = init_df[city] 
         df = df[df["Acs"] == 4]
@@ -514,7 +513,7 @@ def plotMetricVsZones_city(init_df, save, path):
         NoB = df.iloc[0]["TypeE"]
 #        
         ax.plot(df["ZonesPerc"], df["Deaths"].mul(100).div(NoB), 
-                color = colors_dict_city[city], label=city_eng_names[city]+ " W")
+                color = colors_dict_city[city], label=city_eng_names[city]+ " W:0")
         
         df = init_df[city] 
         df = df[df["Acs"] == 4]
@@ -524,13 +523,36 @@ def plotMetricVsZones_city(init_df, save, path):
         df['ZonesPerc'] = df['Zones'].mul(100).div(numeberOfZones(city))
         outList.append(df)
 
-        
+#        
+#        ax.plot(df["ZonesPerc"], df["Deaths"].mul(100).div(NoB), 
+#                color=colors_dict_city[city], label=city_eng_names[city] + " FF", linestyle="--")
+                
         ax.plot(df["ZonesPerc"], df["Deaths"].mul(100).div(NoB), 
-                color=colors_dict_city[city], label=city_eng_names[city] + " FF", linestyle="--")
+                color=colors_dict_city[city], linestyle="--")
         
-    ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-    ncol=4, mode="expand", borderaxespad=0., edgecolor="white",
-    prop={'size': legend_fontsize})
+#    ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+#    ncol=4, mode="expand", edgecolor="white",
+#    prop={'size': legend_fontsize})
+        
+
+        
+        legend_elements.append(Line2D([0], [0], marker='o', markerfacecolor=colors_dict_city[city], 
+                                      label=city_eng_names[city], color='w', markersize=10))
+    
+    legend_elements2=[]
+    legend_elements2.append(Line2D([0], [0], color='black', lw=2, ls='--', label='FF'))
+    legend_elements2.append(Line2D([0], [0], color='black', lw=2, label='W=0'))
+    
+    city_legend = plt.legend(handles=legend_elements, 
+                             prop={'size': legend_fontsize}, ncol =4,
+                             bbox_to_anchor=(0., 1.02, 1, 1.02),
+                             mode="expand", borderaxespad=0., edgecolor="white"
+                             )
+    ax.add_artist(city_legend)
+    ax.legend(handles=legend_elements2, prop={'size': legend_fontsize}, ncol=4,loc='center',
+              bbox_to_anchor=(0., 1.02, 0.9, 0.3), borderaxespad=0., edgecolor="white"
+              )
+        
     ax.tick_params(labelsize=ticks_fontsize)
     
     ax.set_xlim(0,20)
@@ -538,6 +560,9 @@ def plotMetricVsZones_city(init_df, save, path):
     
     ax.set_ylim(-1,40)
     ax.set_ylabel(my_labels["Deaths"], fontsize=ax_lab_fontsize)
+    
+#    plt.subplots_adjust(left=0.1, bottom=0.01, right=0.95, top=1.01,
+#             hspace=0.3)
     
     if save:
         plt.savefig(path+title, bbox_inches = 'tight', format='pdf')
@@ -652,8 +677,8 @@ def plotMetricVsZones_policy_p(init_df, acs, tt, utt, plist,
     fig, ax = plt.subplots(1,1,figsize=(9,3))
 #    ax = fig.add_axes([0.1, 0.11, 0.7, 0.7])
     ax.grid()
-    ax.set_xlabel(my_labels["Zones"], fontsize=ax_lab_fontsize)
-    ax.set_ylabel(my_labels[metric], fontsize=ax_lab_fontsize)
+    ax.set_xlabel(my_labels["Zones"], fontsize=ax_lab_fontsize+5)
+    ax.set_ylabel(my_labels[metric], fontsize=ax_lab_fontsize+5)
             
 #    ax.set_title(city)
 #    ttl = ax.title
@@ -687,14 +712,18 @@ def plotMetricVsZones_policy_p(init_df, acs, tt, utt, plist,
                 
                 if metric == "Deaths" or metric == "AmountRechargeForced":
                     y = tmp2[metric]
-#                    y = y.div(init_df.iloc[0]["TypeE"]).mul(100)
+                    y = y.div(init_df.iloc[0]["TypeE"]).mul(100)
                     
                 elif metric == "TravelWithPenlaty":
                     y = tmp2["AvgWalkedDistance"]
                     y = y.mul(tmp2["ReroutePerc"])
                     y = y + (tmp2["AmountRechargePerc"] -  tmp2["ReroutePerc"])*k
-    #                y = y.div(tmp2.iloc[0]["TypeE"])
+#                    y = y.div(tmp2.iloc[0]["TypeE"])
                     y = y.div(100)
+                    
+                elif metric == "AvgWalkedDistance":
+                    y = tmp2["AvgWalkedDistance"]
+                    y = y.div(1000)
                     
                 else:
                     y= tmp2[metric]
@@ -702,68 +731,70 @@ def plotMetricVsZones_policy_p(init_df, acs, tt, utt, plist,
                 print (policy, p, len(y))
                 if policy == "Needed" : p_legend = ""
                 else: p_legend = " p:" +str(100-p)
+                
                 ax.plot(x,y, label= my_labels[policy] + p_legend, 
                 linestyle=line_dict[policy], 
                 marker = markers_dict[list(markers_dict.keys())[i]],
                 color=colors_dict[list(colors_dict.keys())[i]]
                 )
-
-                
-                
-#                if metric == "Deaths" :
+                if metric == "Deaths" :
 #                    continue
-#                    
-#                    left, bottom, width, height = [0.30, 0.40, 0.45, 0.35]
-#                    ax2 = fig.add_axes([left, bottom, width, height])
-#                    
-#                    ax2.set_xlim(zoom_deaths[city])
-#                    if city != 'Berlino':
-#                        ax2.set_ylim(bottom=10e-6, top=10e-2)
-#                    
-#                    ax2.set_ylabel("[%]", fontsize=ax_lab_fontsize)
-#                    ax2.set_yscale("log")
-#                    ax2.set_xlabel(my_labels["Zones"], fontsize=ax_lab_fontsize)
-#                    ax2.plot(x,y, label= my_labels[policy] + " p:" +str(p), 
-#                    linestyle=line_dict[policy], 
-#                    marker = markers_dict[list(markers_dict.keys())[i]],
-#                    color=colors_dict[list(colors_dict.keys())[i]])
-##                    ax2.tick_params(labelsize=ticks_fontsize)
+                    
+                    left, bottom, width, height = [0.30, 0.40, 0.45, 0.35]
+                    ax2 = fig.add_axes([left, bottom, width, height])
+                    
+                    ax2.set_xlim(zoom_deaths[city])
+                    if city != 'Berlino':
+                        ax2.set_ylim(bottom=10e-6, top=10e-2)
+                    
+                    ax2.set_ylabel("[%]", fontsize=ax_lab_fontsize)
+                    ax2.set_yscale("log")
+                    ax2.set_xlabel(my_labels["Zones"], fontsize=ax_lab_fontsize)
+                    ax2.plot(x,y, label= my_labels[policy] + " p:" +str(p), 
+                    linestyle=line_dict[policy], 
+                    marker = markers_dict[list(markers_dict.keys())[i]],
+                    color=colors_dict[list(colors_dict.keys())[i]])
+#                    ax2.tick_params(labelsize=ticks_fontsize)
                     
                 i=i+1
 
-#    ax.set_ylim(y_lim[metric])
-    ax.tick_params(labelsize=ticks_fontsize)
+    ax.set_ylim(y_lim[metric])
+    if metric == 'TravelWithPenlaty' and city == 'Vancouver': 
+        ax.set_ylim([0,800])
+        ax.set_yticklabels([0,0.2, 0.4, 0.6, 0.8])
+        ax.set_ylabel('Weighted walked distance[km]')
+    ax.tick_params(labelsize=ticks_fontsize + 5)
 
     ymin, ymax = ax.get_ylim()
     x = x.tolist()
     x.insert(0,0)
     x = np.array(x)
-
-#    ax.fill_between(x,ymin, ymax, where= x<=zoom_deaths[city][1] , 
-#                    color='red', alpha=0.2, label="Infeasible trips")
+    if metric != 'Deaths':
+        ax.fill_between(x,ymin, ymax, where= x<=red_box[city], 
+                    color='red', alpha=0.2, label="Infeasible trips")
 #    ax.legend(bbox_to_anchor=(1, 1), loc=2,
 #           ncol=1, mode="expand", borderaxespad=0., edgecolor="white", bbox_to_anchor)
     
     
-    if metric == 'AmountRechargePerc' or metric == 'Deaths':
-        ax.legend( ncol=5,loc=9, bbox_to_anchor=(0.5,1.45),
-                  prop={'size': legend_fontsize-1}, edgecolor="white")
+#    if metric == 'AmountRechargePerc' or metric == 'Deaths':
+#        ax.legend( ncol=5,loc=9, bbox_to_anchor=(0.5,1.45),
+#                  prop={'size': legend_fontsize-1}, edgecolor="white")
     
-    ax3 = ax.twiny()
-    ax3.set_xlabel("Number of charging station", fontsize=ax_lab_fontsize)
-    myX3ticks = ax.get_xticks()
-    myX3ticksB = []
-    if metric != 'Deaths' : 
-        ax3.set_xlim([5,31])
-        ax.set_xticks([5,10,15,20,25,30])
-    else : ax3.set_xlim([0,31])
-    
-    for i in range(len(myX3ticks)):
-        myX3ticksB.append(int(myX3ticks[i] / 100 * nz ))
-#    myX3ticksB[-1:] = ""
-
-    ax3.set_xticklabels(myX3ticksB)
-    ax3.tick_params(labelsize=ticks_fontsize)
+#    ax3 = ax.twiny()
+#    ax3.set_xlabel("Number of charging stations", fontsize=ax_lab_fontsize)
+#    myX3ticks = ax.get_xticks()
+#    myX3ticksB = []
+#    if metric != 'Deaths' : 
+#        ax3.set_xlim([5,31])
+#        ax.set_xticks([5,10,15,20,25,30])
+#    else : ax3.set_xlim([0,31])
+#    
+#    for i in range(len(myX3ticks)):
+#        myX3ticksB.append(int(myX3ticks[i] / 100 * nz ))
+##    myX3ticksB[-1:] = ""
+#
+#    ax3.set_xticklabels(myX3ticksB)
+#    ax3.tick_params(labelsize=ticks_fontsize)
 
 
     
@@ -775,82 +806,106 @@ def plotMetricVsZones_policy_p(init_df, acs, tt, utt, plist,
 
 ########################################################################################################
 
-def aggregateUtilizastionPerHour(cities, save,path):
+def aggregateUtilizastionPerHour(cities, save, path):
     colors  = {"Vancouver":"green", "Berlino":"orange",  "Milano":"red", "Torino":"blue", }
     tmp = pd.DataFrame()
     df = pd.DataFrame()
     i=0
-    for city in cities:
+    for city in colors.keys():
         tmp = pd.read_csv("../data"+city+"/bookings_per_hour_"+city+".csv")
         df = df.append(tmp)
                 
-#    return df
     fig, ax = plt.subplots(1,1,figsize=(9,3))
     ax.grid()
     ax.set_xlabel("Hour", fontsize=ax_lab_fontsize)
-    ax.set_ylabel("Average bookings per Hour per day", fontsize=ax_lab_fontsize)
+    ax.set_ylabel("Avg rentals per hour", fontsize=ax_lab_fontsize)
     
     i=0
-    for city in colors.keys():
-        tmp = df[df["city"] ==  city]
+    qqq = []
+    legend_elements = []
+    for city in colors_dict_city.keys():
+        tmp = df[df["city"].str.contains(city[0:4])]
+        print("len", len(tmp))
+
         ax.plot(tmp.dayHour, tmp.WD_BPH_mean, label=city_eng_names[city] + "WD", color=colors[city])
         ax.plot(tmp.dayHour, tmp.WE_BPH_mean, label=city_eng_names[city] + "WE", color=colors[city], linestyle='--')
-        i += 1
+        legend_elements.append(Line2D([0], [0], marker='o', markerfacecolor=colors_dict_city[city], 
+                                      label=city_eng_names[city], color='w', markersize=10))
         
     ax.set_xticks(df.dayHour.unique())
     ax.set_xticklabels([str(hour) for hour in list(df.dayHour)], rotation=45)
+    
+#    ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+#    ncol=4, mode="expand", borderaxespad=0., edgecolor="white",
+#    prop={'size': legend_fontsize})
+    
+    ax.tick_params(labelsize=ticks_fontsize)
+    legend_elements2=[]
+    legend_elements2.append(Line2D([0], [0], color='black', lw=2, label='WD'))
+    legend_elements2.append(Line2D([0], [0], color='black', lw=2, ls='--', label='WE'))
+    
+    city_legend = plt.legend(handles=legend_elements, 
+                             prop={'size': legend_fontsize}, ncol =4,
+                             bbox_to_anchor=(0., 1.02, 1,0),
+                             mode="expand", borderaxespad=0., edgecolor="white"
+                             )
+    ax.add_artist(city_legend)
+    
+    ax.legend(handles=legend_elements2, prop={'size': legend_fontsize}, ncol=4,loc='center',
+              bbox_to_anchor=(0., 1.02, 0.9, 0.4), borderaxespad=0., edgecolor="white"
+              )
+    
+    ax.set_xlim([0,23])
+    if save:
+        
+        plt.savefig(path+"aggBookginfsPerHour.pdf", 
+                    bbox_inches = 'tight', format='pdf')
+    return df
+
+def plotBookingsPerDay(save, path):
+    grouepd_df = {}
+
+#    colors  = {"Vancouver":"green", "Berlino":"orange",  "Milano":"red", "Torino":"blue", }
+
+    grouepd_df["Milano"] = pd.read_csv('../dataMilano/bookings_per_day_Milano.csv')
+    grouepd_df["Torino"]= pd.read_csv('../dataTorino/bookings_per_day_Torino.csv')
+    grouepd_df["Berlino"] = pd.read_csv('../dataBerlino/bookings_per_day_Berlino.csv')
+    grouepd_df["Vancouver"] = pd.read_csv('../dataVancouver/bookings_per_day_Vancouver.csv')
+    
+#    for city in grouepd_df.keys():
+#        df = grouepd_df[city]
+#        df["dayYear"] = df.apply(lambda x :datetime\
+#                                          .datetime\
+#                                          .fromtimestamp(x.init_time)\
+#                                          .timetuple().tm_yday, axis=1 )
+#        grouepd_df[city] = df.groupby('dayYear').count()['_id']
+
+
+    
+    fig, ax = plt.subplots(1,1, figsize=(9,3))
+    for city in colors_dict_city.keys():
+        ax.plot(grouepd_df[city].dayYear, grouepd_df[city].BPD_count,
+                color=colors_dict_city[city], label=city_eng_names[city])
+        
+    ax.grid()
+
+    ax.set_xlabel("Day", fontsize=ax_lab_fontsize)
+    ax.set_ylabel("Rentals per day", fontsize=ax_lab_fontsize)
+    
+    weeks_tikcs = [day for day in range(248, 305, 7) ]
+    weeks_tikcs_labels = [(datetime.datetime(2017,1,1) +\
+                          datetime.timedelta(days=day-1)
+                          ).strftime("%d %b %y") for day in weeks_tikcs]
+#                    
+                    
+    ax.set_xticks(weeks_tikcs)
+    ax.set_xticklabels(weeks_tikcs_labels, rotation=15, ha='right')
+    ax.set_xlim(247, 304)
     
     ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
     ncol=4, mode="expand", borderaxespad=0., edgecolor="white",
     prop={'size': legend_fontsize})
     ax.tick_params(labelsize=ticks_fontsize)
-    
-
-    if save:
-        plt.savefig(path+"aggBookginfsPerHour"+".pdf", bbox_inches = 'tight', format='pdf')
-    return df
-
-def plotBookingsPerDay(save, path):
-    df_list = {}
-    grouepd_df = {}
-
-    colors  = {"Vancouver":"green", "Berlino":"orange",  "Milano":"red", "Torino":"blue", }
-
-    df_list["Milano"] = pd.read_csv('../dataMilano/Milano_completeDataset.csv')
-    df_list["Torino"]= pd.read_csv('../dataTorino/Torino_completeDataset.csv')
-    df_list["Berlino"] = pd.read_csv('../dataBerlino/Berlino_completeDataset.csv')
-    df_list["Vancouver"] = pd.read_csv('../dataVancouver/Vancouver_completeDataset.csv')
-        
-    
-    for city in df_list.keys():
-        df = df_list[city]
-        df["dayYear"] = df.apply(lambda x :datetime.datetime.fromtimestamp(x.init_time).timetuple().tm_yday, axis=1 )
-        grouepd_df[city] = df.groupby('dayYear').count()['_id']
-
-
-    
-    fig, ax = plt.subplots(1,1, figsize=(9,3))
-    for city in colors.keys():
-        ax.plot(grouepd_df[city], color=colors[city], label=city_eng_names[city], marker='o')
-        
-    ax.grid()
-
-    ax.set_xlabel("Day", fontsize=ax_lab_fontsize)
-    ax.set_ylabel("Bookings per day", fontsize=ax_lab_fontsize)
-    
-    weeks_tikcs = [day for day in range(248, 305, 7) ]
-    weeks_tikcs_labels = [(datetime.datetime(2017,1,1) +\
-                          datetime.timedelta(days=day)
-                          ).strftime("%d %b %y") for day in weeks_tikcs]
-                    
-                    
-    ax.set_xticks(weeks_tikcs)
-    ax.set_xticklabels(weeks_tikcs_labels, rotation=15, ha='right')
-    
-    ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-    ncol=4, mode="expand", borderaxespad=0., edgecolor="white",
-    prop={'size': fontsize})
-    ax.tick_params(labelsize=fontsize)
     
     if save:
         plt.savefig(path+"bookings_per_day.pdf",  bbox_inches = 'tight', format='pdf')
@@ -920,49 +975,70 @@ def divisorGenerator(n):
 
 ########################################################################################################
 
-def metricVaryingZonesAndAcs(dict_df, metric, city, save, path, ax): 
+def metricVaryingZonesAndAcs_city(dict_df, metric, save, path): 
 
-#    for city in colors_dict_city.keys():
     
-#    if city in ["Vancouver", "Milano"]: return
-    
-    if ax == "":
-        fig,ax = plt.subplots(1,1,figsize=(12,4))
-    ax.grid()
-    
-#    tmp = dict_df[city]
-    tmp = dict_df
-    
-    Zones = list(tmp.Zones.mul(100/numeberOfZones(city)))
-    Zones = list(tmp.Zones)
-    Acs = list(tmp.Acs)
+    fig,ax = plt.subplots(1,1,figsize=(12,4))
+    if metric in ['AvgWalkedDistance', 'AvgTimeInStation']:
+        ax.grid(which="both")
+    else: ax.grid()
+    ax.set_yscale('log')
+        
+    for city in colors_dict_city.keys():
+        print (city)
+        tmp = dict_df[city]
+        tmp = tmp[tmp['Policy'] == 'Needed']
+        
+        Zones = list(tmp.Zones.mul(100/numeberOfZones(city)))
+
+        if metric == 'Deaths': mul= 100/tmp.iloc[0]['TypeE']
+        elif metric == 'AvgWalkedDistance': 
+            mul = 1/1000
+            ax.set_yticks([1,2,3,4,5,10])
+            ax.get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+            
+        elif metric =='AvgTimeInStation' : 
+            mul = 1/3600
+            ax.get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+            ax.set_yticks([1,2,3,4,5,10])
+        else :mul=1
+        
+        ax.plot(Zones, tmp[metric].mul(mul),label=city, 
+                color=colors_dict_city[city])
+        
+        marked = tmp[tmp['AvaiableChargingStations_last'] == -1]
+        Zones = list(marked.Zones.mul(100/numeberOfZones(city)))
+        ax.scatter(Zones, marked[metric].mul(mul), 
+                   color=colors_dict_city[city], marker='o', s=50, label="")
+
+    tmp = dict_df['Berlino']
+    tmp = tmp[tmp['Policy'] == 'Needed']
+
+    Zones = list(tmp.Zones.mul(100/numeberOfZones('Berlino')))
     Acs_last =  list(tmp.AvaiableChargingStations_last)
     
     ticksLabels = []
-    
     for i in range(len(Zones)):
         if Acs_last[i] == -1:
             Acs_last[i]=0
-#            ticksLabels.append("%s-%s" %(round(Zones[i]), Acs[i]))
-        ticksLabels.append("%s-%s-%s" %(round(Zones[i]), Acs[i], Acs_last[i]))
-        
-    if metric == 'Deaths': mul= 100/tmp.iloc[0]['TypeE']
-    else :mul=1
-    ax.plot(Zones, tmp[metric].mul(mul), marker='o',label=city, 
-            color=colors_dict_city[city])
-    ax.set_xticks(Zones[0:-1:int(len(tmp[metric])*0.075)])
-    ax.set_xticklabels(ticksLabels[0:-1:int(len(tmp[metric])*0.075)], rotation=15, ha='right')
-    
+        ticksLabels.append("%s" %(round(Zones[i])))
+
+#    ax.set_xticks(Zones[0:-1:int(len(tmp[metric])*0.075)])
+#    ax.set_xticklabels(ticksLabels[0:-1])
+    ax.set_xlim([0,30])
     ax.tick_params(labelsize=ticks_fontsize)
-    ax.set_xlabel("Zones[%]-ACS-LastACS", fontsize=ax_lab_fontsize)
+    ax.set_xlabel("Zones[%]", fontsize=ax_lab_fontsize)
     
-    if metric in my_labels.keys(): ax.set_ylabel(my_labels[metric], fontsize=ax_lab_fontsize-1)
-    else: ax.set_ylabel(metric, fontsize=ax_lab_fontsize-1)
-    
-    ax.legend(prop={'size': legend_fontsize})
+    if metric == 'AvgTimeInStation': ax.set_yticks([1,2,3,4,5,10])
+        
+    ax.set_ylabel(my_labels[metric], fontsize=ax_lab_fontsize-1)
+
+
+    ax.legend(prop={'size': legend_fontsize}, loc='upper center', ncol=4)
+
 
     if save:
-        title = "%s_%s_vsZones_ACS.pdf" % (city,metric)
+        title = "%s_vsZones_ACS.pdf" % (metric)
         plt.savefig(path+title,  bbox_inches = 'tight', format='pdf')
 
     return 

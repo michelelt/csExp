@@ -103,11 +103,32 @@ class Downloader:
 #        srvr_ssh += "/home/d046373@polito.it/%s_sim3.0/output_analysis/bookings_per_hour_%s "%(self.city, self.city)
 #        dst = self.dst_home + "bookings_per_hour_"+self.city+".csv"
 #        os.system('scp ' + srvr_ssh + dst)
-        
-        cmd = 'scp tlcdocker1:/home/d046373@polito.it/%s_sim3.0/input/bookings_per_hour_%s.csv '%(city, city)
-        cmd +='../data%s/' %(city)
+        if city == 'Berlino': 
+            city_dld= 'Berlin'
+        else: 
+            city_dld = city
+
+        cmd = 'scp tlcdocker2:/home/d046373@polito.it/sim3.0/input/bookings_per_hour_%s.csv '%(city_dld)
+        cmd +='../data%s/bookings_per_hour_%s.csv' %(city,city)
         os.system(cmd)
-        print ("bookings_per_hour_"+self.city+".csv", "downloaded" )
+        print ("bookings_per_hour_"+city+".csv", "downloaded" )
+        return
+    
+    def downloadBookingsPerDay(self, city):
+        
+#        srvr_ssh = "d046373@polito.it@tlcdocker1.polito.it:"
+#        srvr_ssh += "/home/d046373@polito.it/%s_sim3.0/output_analysis/bookings_per_hour_%s "%(self.city, self.city)
+#        dst = self.dst_home + "bookings_per_hour_"+self.city+".csv"
+#        os.system('scp ' + srvr_ssh + dst)
+        if city == 'Berlino': 
+            city_dld= 'Berlin'
+        else: 
+            city_dld = city
+
+        cmd = 'scp tlcdocker2:/home/d046373@polito.it/sim3.0/input/bookings_per_day_%s.csv '%(city_dld)
+        cmd +='../data%s/bookings_per_day_%s.csv' %(city,city)
+        os.system(cmd)
+        print ("bookings_per_day_"+city+".csv", "downloaded" )
         return
     
         
@@ -131,7 +152,7 @@ class Downloader:
         print ("%s_fleet_per_day downloaded"%city)
         return
 
-    def downloadLogHDFS(self, simID, policy, algorithm, zones, acs, tt, wt, utt, p, city, kwh=''):
+    def downloadLogHDFS(self, simID, policy, algorithm, zones, acs, tt, wt, utt, p, city, fromSSD, kwh=''):
         if simID == "last":
             lastS = self.acquireLastSimulationID()
             print("The last Simulation is", lastS)
@@ -151,6 +172,9 @@ class Downloader:
             else:
                 fileName= "car2go_%s_%s_%d_%d_%d_%d_%d_%d_%d.txt" %(policy,algorithm, zones,acs,
                                                                     tt,wt,utt,p, kwh)
+                
+            if fromSSD ==True: return fileName
+            print(11111)
     
             bashCommand = "ssh cocca@bigdatadb "+\
               "hdfs dfs -cat "+\

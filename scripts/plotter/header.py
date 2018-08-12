@@ -19,6 +19,8 @@ import subprocess
 import pprint as pp
 
 import math
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D 
 pp = pp.PrettyPrinter()
 
 ticks_fontsize = 15
@@ -40,10 +42,11 @@ markers_dict_policy = {"FreeFloating":"s", "Needed":"o", "Hybrid":"d"}
 
 colors_dict_policy = {"FreeFloating":"brown", "Needed":"red"}
 
-colors_dict_city ={ "Vancouver": "green",
-               "Berlino" : "orange",
+colors_dict_city ={ 
+               "Torino": "blue",
                "Milano" : "red",
-               "Torino": "blue"
+               "Berlino" : "orange",
+               "Vancouver": "green"
         }
 city_eng_names = { "Vancouver": "Vancouver",
                "Berlino" : "Berlin",
@@ -56,7 +59,7 @@ my_labels = {"Needed":"Will. p:0",
           "FreeFloating":"Free Floating",
           "Deaths":"Infeasible trips [%]",
           "Zones": "Zones [%]",
-          "AvgWalkedDistance": "Average walked distance [m]",
+          "AvgWalkedDistance": "Avg walked distance [km]",
           "TripDistance":"Distance",
           "duration":"Duration",
           "AvgSOC": "Average State of Charge [%]",
@@ -71,7 +74,8 @@ my_labels = {"Needed":"Will. p:0",
           "TravelWithPenlaty":"Weighted walked distance [m]",
           "mean-rnd":"Mean rnd", 
           "min-rnd":"Best rnd",
-          "AvgStationOccupancy": "Average Station Occupancy"
+          "AvgStationOccupancy": "Average Station Occupancy",
+          "AvgTimeInStation": 'Avg charging time [h]'
         }
 
 
@@ -81,13 +85,19 @@ y_lim = {
           "AmountRechargePerc" : (0,80),
           "AvgSOC": (0,100),
           "ReroutePerc": (-5,60),
-          "AvgWalkedDistance": (0,3000),
+          "AvgWalkedDistance": (0,3),
           "TravelWithPenlaty":(0,1500),
         }
 
 zoom_deaths = { "Vancouver": (7,11),
                "Milano" : (6,10),
-               "Berlino" : (12, 18),
+               "Berlino" : (25, 31),
                "Torino": (4.5, 7.5)
+        }
+
+red_box = { "Vancouver": 8,
+               "Milano" : 8,
+               "Berlino" : 8,
+               "Torino": 6
         }
 
