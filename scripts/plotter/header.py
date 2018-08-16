@@ -59,7 +59,7 @@ my_labels = {"Needed":"Will. p:0",
           "FreeFloating":"Free Floating",
           "Deaths":"Infeasible trips [%]",
           "Zones": "Zones [%]",
-          "AvgWalkedDistance": "Avg walked distance [km]",
+          "AvgWalkedDistance": "Avg walk dist. [km]",
           "TripDistance":"Distance",
           "duration":"Duration",
           "AvgSOC": "Average State of Charge [%]",
@@ -75,7 +75,7 @@ my_labels = {"Needed":"Will. p:0",
           "mean-rnd":"Mean rnd", 
           "min-rnd":"Best rnd",
           "AvgStationOccupancy": "Average Station Occupancy",
-          "AvgTimeInStation": 'Avg charging time [h]'
+          "AvgTimeInStation": 'Avg plug time [h]'
         }
 
 
